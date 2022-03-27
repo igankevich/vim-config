@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+cd $(dirname $(realpath $0))
+
+config=$HOME/.config
+cache=$HOME/.cache
+
+mkdir -p $config $cache/vim/swap $cache/vim/backup \
+
+stow --dir=src --target=$config --adopt config
+
+ln -sfnr $HOME/.config/vimrc $HOME/.vimrc

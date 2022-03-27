@@ -1,0 +1,944 @@
+" {{{ XDG config dirs
+" Environment (see https://tlvince.com/vim-respect-xdg)
+set runtimepath=~/.config/vim,~/.cache/vim,~/.cache/vim/after,$VIM,$VIMRUNTIME
+" }}}
+" {{{ Plugins
+if empty(glob('~/.cache/vim/autoload/plug.vim'))
+    echo 'Downloading vim-plug plugin manager...'
+    silent !curl -fLo ~/.cache/vim/autoload/plug.vim --create-dirs
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    autocmd VimEnter * PlugInstall | source $MYVIMRC
+endif
+
+call plug#begin('~/.cache/vim/plugged')
+Plug 'drmikehenry/vim-headerguard'
+Plug 'dag/vim-fish'
+Plug 'vectorstorm/vim-chlordane'
+Plug 'wellle/targets.vim'
+Plug 'FooSoft/vim-argwrap'
+Plug 'tpope/vim-unimpaired'
+Plug 'reedes/vim-textobj-sentence' | Plug 'kana/vim-textobj-user'
+Plug 'reedes/vim-textobj-quote' | Plug 'kana/vim-textobj-user'
+Plug 'lervag/vimtex', {'do': 'rm after/syntax/tex.vim'}
+Plug 'kana/vim-textobj-entire'
+Plug 'mikelue/vim-maven-plugin'
+Plug 'tpope/vim-abolish'
+Plug 'tpope/vim-fugitive'
+Plug '~/repos/dev/organic.vim'
+Plug '~/repos/dev/vim-vcard'
+Plug 'rsmenon/vim-mathematica'
+Plug 'petRUShka/vim-opencl'
+Plug 'wilriker/gcode.vim'
+Plug 'tikhomirov/vim-glsl'
+Plug 'fcpg/vim-altscreen'
+Plug 'powerman/vim-plugin-AnsiEsc'
+Plug 'igankevich/arabica.vim'
+"Plug '~/repos/dev/arabica.vim'
+Plug 'igankevich/mesonic'
+"Plug '~/repos/dev/mesonic'
+Plug 'igankevich/openscad.vim'
+Plug 'igankevich/siren.vim'
+"Plug '~/repos/dev/siren.vim'
+Plug 'rust-lang/rust.vim'
+call plug#end()
+runtime ftplugin/man.vim
+" }}}
+
+" {{{ Options
+" persistent undo
+set undofile autowrite
+" indent '#' as all other code
+inoremap # x<bs>#
+" disable comment leaders
+set formatoptions=qj
+
+set cursorline
+" disable mouse
+set mouse=
+
+" indentation
+set nocindent smartindent tabstop=4 shiftwidth=4 expandtab
+" fast search
+set incsearch hlsearch
+" do not wait after pressing ESC
+set noesckeys
+" splits
+"set splitright splitbelow
+" make backspace work on MacOS X
+set backspace=indent,eol,start
+" disable bell sound
+set noerrorbells visualbell t_vb=
+" display settings
+set showmatch showmode showcmd ruler
+set matchpairs+=<:>     " specially for html
+set foldmethod=marker
+set nomore
+
+set lazyredraw
+set history=1000
+set wildmenu wildcharm=<C-z> wildignore=*.swp,*~
+
+" enable :find completion for files in subdirectories
+set path=.,**
+set dictionary=/usr/share/dict/words spelllang=en_gb,ru_ru
+set shell=/bin/sh
+set tabpagemax=999
+
+let g:tex_flavor='latex'
+
+function! SchemeWords()
+    " Scheme
+    set lispwords=
+    set lispwords+=define-module,define-method,define,define*,define-public
+    set lispwords+=set!,lambda,lambda*,let,let*,do,define-syntax,begin,if,unless,when,cond,case
+    set lispwords+=call-with-input-file,call-with-output-file,with-input-from-file
+    set lispwords+=with-output-to-file,with-error-to-file,call-with-input-string
+    set lispwords+=call-with-output-string,with-output-to-string,with-input-from-string
+    set lispwords+=define-record-type,define-record-type*,define-class,make
+    set lispwords+=define-syntax,define-syntax-rule,syntax-case,receive,catch,while
+    set lispwords+=with-error-to-port,with-output-to-port,with-input-to-port,pre-post-order
+    " Guix
+    set lispwords+=substitute-keyword-arguments,modify-phases,replace,add-before,add-after
+    set lispwords+=substitute*,program-file,with-imported-modules,directory-union,file-union
+    set lispwords+=plain-file,mixed-text-file,scheme-file,with-mutex,package/inherit
+endfunction
+
+filetype off
+filetype plugin indent on
+syntax enable
+
+" parallel make
+set makeprg=make\ -j4
+
+" better diff
+set diffopt=filler,internal,algorithm:patience,indent-heuristic,vertical
+
+" }}}
+" Epic {{{
+augroup epicgroup
+    autocmd!
+    autocmd BufReadPost,BufNewFile * call EpicInit()
+augroup END
+
+function! EpicInit()
+    try
+        if filereadable("GTAGS")
+            " replace cscope with GNU global
+            let &l:cscopeprg = "gtags-cscope"
+            cscope reset
+            cscope add GTAGS
+            setlocal cscopetag
+            setlocal cscopequickfix=s-,c-,d-,i-,t-,e-
+            setlocal csto=0
+        endif
+    catch
+        " ignore overly restrictive E788 error
+    endtry
+endfunction
+
+function! EpicUpdate()
+    if !filereadable("GTAGS") 
+        call system("gtags --skip-unreadable")
+        call EpicInit()
+    else
+        call system("global -u")
+    endif
+    echo "Updated GTAGS"
+endfunction
+" }}}
+" {{{ Misc. file type integrations
+if has("autocmd")
+    augroup vimrcgroup
+        autocmd!
+        autocmd BufRead,BufNewFile *.ins,*.dtx,*.cls,*.tex set filetype=tex
+        autocmd BufRead,BufNewFile .Rprofile set filetype=r
+        " graphviz integration
+        "autocmd BufRead,BufNewFile *.dot setlocal makeprg=dot\ -Tsvg\ %\ -o\ %:r.svg
+        " small shiftwidth for reformatting Maven pom.xml
+        autocmd BufRead,BufNewFile pom.xml setlocal shiftwidth=2 tabstop=2
+        " better email formatting
+        autocmd BufRead /tmp/mutt-* call PlainText()
+        autocmd BufRead */include/c++/* set filetype=cpp
+        " stdin handling
+        autocmd StdinReadPost * setlocal hidden buftype=nofile
+        " simple file chooser
+        autocmd StdinReadPost * nnoremap <enter> :silent !open <cfile><cr>
+        " better sentence text objects
+        autocmd FileType tex,markdown,text,org call textobj#sentence#init()
+        autocmd Filetype gitcommit setlocal spell textwidth=72 colorcolumn=73 | call InsertIssue()
+" fix git commit line for non-standard git prefix characters
+
+        autocmd Filetype org setlocal spell textwidth=80 nosmartindent nocindent | inoreabbrev <buffer> << « | inoreabbrev <buffer> >> » | inoreabbrev кфмн к.ф.-м.н.
+        autocmd Filetype bib setlocal formatprg=bibtool iskeyword+=45 | nnoremap <buffer> <enter> :silent !setsid --fork plumb ~/org/bibliography/<cword>.pdf >/dev/null 2>&1<cr>
+        autocmd FileType r setlocal tabstop=2 shiftwidth=2
+        autocmd FileType cpp inoreabbrev ;: :: | inoreabbrev this_ this-
+        " Remove trailing whitespace
+        autocmd FileType c,cpp,python,ruby,java,opencl
+                    \ autocmd BufWritePre <buffer> call RemoveTrailingWhitespace()
+        autocmd FileType xml setlocal shiftwidth=2 tabstop=2
+        autocmd FileType scheme syntax sync fromstart | setlocal lisp autoindent | call SchemeWords() | setlocal shiftwidth=2 | call SchemeText()
+        autocmd Filetype c,cpp,opencl setlocal cinkeys-=0# cindent cino=j1,(0,ws,Ws formatoptions=jql | inoreabbrev inlien inline | inoreabbrev cosnt const
+        "autocmd FileType cpp setlocal formatprg=astyle\ -N\ -xU\ -S\ -xw\ -w\ -xt1
+        autocmd Filetype c,cpp,objc call SetupPath()
+        autocmd FileType make setlocal noexpandtab
+        autocmd FileType meson setlocal shiftwidth=4 tabstop=4
+        autocmd FileType go setlocal formatprg=gofmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
+        autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr>
+        autocmd FileType rust setlocal formatprg=rustfmt\ --edition\ 2021
+        autocmd BufRead,BufNewFile *.vsl set nowrap
+        autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") && bufname('%') !~# '^fugitive:'
+                    \| exe "normal! g'\"" | endif
+        autocmd FileType org nnoremap <buffer> <leader><enter> :silent !setsid --fork plumb build/%:r.pdf<cr>
+        autocmd BufRead,BufNewFile *.mathics setlocal filetype=mma makeprg=mathics\ %
+        autocmd BufRead,BufNewFile *.gnuplot set filetype=gnuplot
+        autocmd FileType meson,markdown syntax sync fromstart
+    augroup END
+endif
+" }}}
+function! RemoveTrailingWhitespace()
+    let old = winsaveview()
+    silent! %s/\s\+$//e
+    call winrestview(old)
+endfunction
+function! IndentParagraph()
+    let old = winsaveview()
+    normal mz=ip'z
+    call winrestview(old)
+endfunction
+function! FormatParagraph()
+    let old = winsaveview()
+    normal mzgqip'z
+    call winrestview(old)
+endfunction
+nnoremap <silent> + :call IndentParagraph()<cr>
+" {{{ C++ related
+function! g:AddToPath(paths)
+    if empty(a:paths) | return | endif
+    for path in split(a:paths,':')
+        if empty(path) | continue | endif
+        execute 'set path+=' . simplify(resolve(path))
+        let cpp = path . '/c++'
+        if isdirectory(cpp)
+            execute 'set path+=' . simplify(resolve(cpp))
+        endif
+    endfor
+endfunction
+
+function! g:SetupPath()
+    call AddToPath($CPATH)
+    call AddToPath($C_INCLUDE_PATH)
+    call AddToPath($CPLUS_INCLUDE_PATH)
+    call AddToPath($OBJC_INCLUDE_PATH)
+    call AddToPath($CROSS_C_INCLUDE_PATH)
+    call AddToPath($CROSS_CPLUS_INCLUDE_PATH)
+    call AddToPath($CROSS_OBJC_INCLUDE_PATH)
+endfunction
+
+" full path as header guard name
+function! g:HeaderguardName()
+    let cwd = fnamemodify(getcwd(), ":p")
+    let gatename = expand("%:p")
+    let gatename = substitute(gatename, '^' . fnameescape(cwd), "", "g")
+    let gatename = substitute(gatename, '^src/', "", "g")
+    let gatename = substitute(gatename, '\.\./', "", "g")
+    let gatename = substitute(gatename, '\./', "", "g")
+    let gatename = substitute(gatename, '\.in$', "", "g")
+    let gatename = substitute(gatename, "[^0-9a-zA-Z_]", "_", "g")
+    return toupper(gatename)
+endfunction
+
+" full path as header guard name
+function! g:HeaderguardLine3()
+    return '#endif // vim:filetype=cpp'
+endfunction
+
+" list files in the directory where the current file is located
+function! g:ListFiles(...)
+    let pattern = '*'
+    if a:0 == 1
+        let pattern = a:1
+    endif
+    let path = expand('%:h') . '/'
+    let files = split(globpath(path, pattern), '\n')
+    call reverse(files)
+    for f in files
+        let f = substitute(f, '^' . fnameescape(path), "", "")
+        call append(line('.'), "'".f."',")
+    endfor
+endfunction
+
+command! -nargs=? ListFiles call g:ListFiles(<args>)
+
+let headerguard_use_cpp_comments=1
+let source_extensions = ['.cc', '.cpp', '.C', '.c']
+let header_extensions = ['', '.hh', '.hpp', '.H', '.h']
+
+function! g:SwitchBetweenHeaderAndSource()
+    let extension = expand('%:e')
+    let filename = expand('%:r')
+    let extensions = g:source_extensions
+    let is_header = 1
+    if index(g:source_extensions, '.' . extension) >= 0
+        let extensions = g:header_extensions
+        let is_header = 0
+    elseif index(g:header_extensions, '.' . extension) >= 0
+        let extensions = g:source_extensions
+        let is_header = 1
+    endif
+    let new_filename = ''
+    for ext in extensions
+        let tmp = filename . ext
+        if filereadable(tmp)
+            let new_filename = tmp
+            break
+        endif
+    endfor
+    if len(new_filename) == 0
+        if is_header
+            let new_filename = filename . '.cc' 
+        else
+            let new_filename = filename . '.hh' 
+        endif
+    endif
+    update
+    execute 'edit ' . new_filename
+endfunction
+function! g:SwitchBetweenTestAndSource()
+    let extension = expand('%:e')
+    let filename = expand('%:r')
+    let new_filename = ''
+    if filename =~# '_test$'
+        let new_filename = substitute(filename,'_test$','','') . '.' . extension
+    else
+        let new_filename = filename . '_test.' . extension
+    endif
+    update
+    execute 'edit ' . new_filename
+endfunction
+" }}}
+let g:meson_target = ''
+function! g:MesonSelectTarget()
+    let targets = json_decode(system('meson introspect --targets build'))
+    let menu = {'description': 'Build targets', 'command_candidates': [] }
+    for t in targets
+        call add(menu.command_candidates, [t.filename, 'call MesonSetTarget("' . t.filename . '")'])
+    endfor
+    call DeniteTemporaryMenu(menu)
+endfunction
+function! g:MesonSetTarget(new_target)
+    let g:meson_target = a:new_target
+endfunction
+"let meson_ninja_command = 'ninja -j4'
+" {{{ Key bindings and abbreviations
+let mapleader = "\<space>"
+nnoremap <leader>h :Headerguard<cr>
+" generate GNU global tags
+nnoremap <silent> <leader>T :call EpicUpdate()<cr>
+" wrap arguments
+nnoremap <silent> <leader>a :ArgWrap<cr>
+" query GNU global
+map g<C-]> :cs find 3 <C-R>=expand("<cword>")<cr><cr>
+map g<C-\> :cs find 0 <C-R>=expand("<cword>")<cr><cr>
+" disable accidental command line editing when quitting
+map q: :q
+" sort a paragraph
+nnoremap <leader>S vip:sort<cr>
+
+" Sort lines, selected or over motion.
+xnoremap <silent> gs :sort i<CR>
+nnoremap <silent> gs :set opfunc=SortLines<CR>g@
+function! SortLines(type) abort
+    '[,']sort i
+endfunction
+map K <nop>
+nnoremap <space> <nop>
+" https://www.reddit.com/r/vim/comments/o2drnw/serious_problem_text_deletes_accidentally_and_no/
+inoremap <c-u> <nop>
+
+
+nnoremap <leader>m :make!<cr>
+"nnoremap <leader>n :cnext<cr>
+"nnoremap <leader>N :cprev<cr>
+nnoremap <silent> <leader><leader> :call QuickfixToggle()<cr>
+nnoremap <silent> <leader>l :call ToggleLocationList()<cr>
+nnoremap <leader>vv :source ~/.vimrc<cr>
+nnoremap <leader>fi :edit ~/.vimrc<cr>
+nnoremap <leader>fs :edit ~/.config/vim/autoload/plumb<cr>
+nnoremap <silent> <leader>q :call TaskSpoolerErrors()<cr>
+nnoremap <leader>F :edit **/*
+" prefix with src/ if such directory exists
+nnoremap <leader>e :edit =glob('src/')**/*
+function! VimIndent()
+    let old = winsaveview()
+    normal gg=G
+    call winrestview(old)
+endfunction
+nnoremap <f4> :call VimIndent()<cr>
+nnoremap <f5> gggg
+function! Todo()
+    silent lgrep! '\bTODO\b'
+    lopen
+    let g:location_list_is_open = 1
+    redraw!
+endfunction
+nnoremap <f12> :call Todo()<cr>
+
+" chmod +x
+nnoremap <leader>x :!chmod +x %<cr>:e<cr>
+" execute
+nnoremap <silent> <leader>E :call ExecuteCurrentFile()<cr>
+" save
+nnoremap <leader>w :w<cr>
+
+" fast find and replace
+function! g:FindAndReplace()
+    let key = expand('<cword>')
+    echom key
+    execute ":silent lgrep '\\b" . key . "\\b' | redraw!"
+    let @p = '\<' . key . '\>'
+endfunction
+nnoremap <silent> <leader>u :call FindAndReplace()<cr>
+set grepprg=ag\ --vimgrep\ --case-sensitive\ --silent\ $* grepformat=%f:%l:%c:%m
+
+" faster command input
+"nnoremap ; :
+"nnoremap : ;
+
+" faster paragraph indenting
+nnoremap <c-H> mz<ip'z
+nnoremap <c-L> mz>ip'z
+
+" lookup docs online
+"set keywordprg=:DD
+"let g:devdocs_open_command = 'firefox'
+
+" switch between header and source
+nnoremap <silent> <leader>o :call SwitchBetweenHeaderAndSource()<cr>
+nnoremap <silent> <leader>t :call SwitchBetweenTestAndSource()<cr>
+
+"function! g:MyFunc()
+"   let @e = 'dddd0xddpkA|jA|j$xxkkJxJxj'
+"endfunction
+"
+" elibrary export
+"nnoremap <leader>ee :call MyFunc()<cr>
+
+" convert C constants to C++ enums
+let @f = '0df yiwPa=lea,lD0guiw==j0'
+" add ifdef for enum
+let @i = '0f=lyiwO#if defined(pa)jo#endifj^'
+" convert typedef to using
+let @u = '0^dwf;Bdt;^iusing " = f;hxj'
+" add ifdef for OpenCL extension
+let @d = '0d^i#define lyiwO#if !defined(pa)jo#endifj^'
+" wrap with std::move
+let @m = 'viwcstd::move(")'
+"let @m = ':make clean install -DskipTests -Dskip.npm -Dskip.gulp'
+" conver google test to unistdx test
+let @t = '^cf(void test_f,xr_f)i('
+let @e = '^ct(expectlavalue(/, i)ls == xavalue($F)i)j^'
+
+
+inoreabbrev :smile: 🙂
+inoreabbrev :neutral: 😐
+inoreabbrev :unamused: 😒
+inoreabbrev :amused: 😮
+inoreabbrev :happy: 😊
+inoreabbrev :oops: 😓
+inoreabbrev :sleep: 😴
+inoreabbrev :rub: ₽
+inoreabbrev :copy: ©
+cnoreabbrev lgrpe lgrep
+cnoreabbrev lkgrpe lgrep
+cnoreabbrev lkgrep lgrep
+
+let g:quickfix_is_open = 0
+let g:quickfix_bufnr = -1
+function! QuickfixOpen()
+    let g:quickfix_return_to_window = winnr()
+    botright copen
+    let g:quickfix_is_open = 1
+    let g:quickfix_bufnr = bufnr('%')
+endfunction
+function! QuickfixClose()
+    cclose
+    let g:quickfix_is_open = 0
+    execute g:quickfix_return_to_window . "wincmd w"
+endfunction
+function! QuickfixToggle()
+    if g:quickfix_is_open
+        call QuickfixClose()
+    else
+        call QuickfixOpen()
+    endif
+endfunction
+
+let g:location_list_is_open = 0
+function! ToggleLocationList()
+    try
+        if g:location_list_is_open
+            lclose
+            let g:location_list_is_open = 0
+        else
+            lopen
+            let g:location_list_is_open = 1
+        endif
+    catch
+        echo "No location list."
+    endtry
+endfunction
+
+function! ExecuteCurrentFile()
+    let filename = expand('%:p')
+    if !executable(filename)
+        echo "Current file is not executable."
+    else
+        execute ":!" . filename
+    endif
+endfunction
+" }}}
+" {{{ Colorscheme
+if has('osx')
+    colorscheme chlordane
+else
+    if (has("termguicolors"))
+        " set Vim-specific sequences for RGB colors
+        let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+        let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+        set termguicolors
+    endif
+    set background=dark
+    "colorscheme rnb
+    "colorscheme chlordane
+    "colorscheme nord
+    colorscheme siren
+    " disable Background Color Erase (BCE) so that color schemes
+    " render properly when inside 256-color tmux and GNU screen.
+    " see also http://sunaku.github.io/vim-256color-bce.html
+    set t_ut=
+endif
+
+" show matching parentheses in bold
+" (do not change the background to
+" distinguish braces next to each other)
+"highlight MatchParen cterm=bold ctermbg=none ctermfg=none guibg=NONE
+"highlight MatchParen term=bold gui=bold ctermbg=NONE guibg=NONE guifg=#f00000
+
+" tune search background for dracula theme
+"highlight! Search term=reverse ctermfg=17 ctermbg=215 guifg=#282a36 guibg=#ffb86c
+
+" transparent background in terminal
+" (does not work with termguicolors enabled)
+"highlight! Normal ctermbg=NONE guibg=NONE
+"highlight! NonText ctermbg=NONE guibg=NONE
+"highlight StatusLineNC ctermbg=NONE guibg=NONE
+
+" underline spelling mistakes
+"highlight SpellBad ctermbg=NONE guibg=NONE cterm=underline gui=underline
+"highlight SpellLocal ctermbg=NONE guibg=NONE cterm=underline gui=underline
+"highlight SpellRare ctermbg=NONE guibg=NONE cterm=underline gui=underline
+"highlight SpellCap ctermbg=NONE guibg=NONE cterm=underline gui=underline
+"highlight CursorLine cterm=NONE ctermbg=235 guibg=#404040
+
+" }}}
+" {{{ XDG config dirs (continued
+set viminfo+=n~/.cache/vim/viminfo
+" }}}
+" {{{ Plumbs
+"let g:UltiSnipsExpandTrigger="<tab>"
+"let g:UltiSnipsJumpForwardTrigger="<c-j>"
+"let g:UltiSnipsJumpBackwardTrigger="<c-k>"
+"
+"" If you want :UltiSnipsEdit to split your window.
+"let g:UltiSnipsEditSplit="vertical"
+"let g:UltiSnipsPlumbsDir="~/.cache/vim/UltiSnips"
+" }}}
+" {{{ Plain text formatting
+" see: https://www.reddit.com/r/vim/comments/4lvaok/supercharge_vim_formatting_for_plain_text/
+
+" Look vim, if we don't have the filetype set it's more likely I'm just writing
+" plain text rather than C.
+function! PlainText()
+    " We don't have a notion of comments in plain text. Also this un-fucks the use
+    " of '*' in formatlistpat.
+    set comments=
+    " Use comment string for quoting
+    set commentstring=>\ %s
+    set spell
+    " Formatting
+    set wrap
+    set textwidth=80
+    set formatoptions+=tcoqnl1j
+    set linebreak
+    set breakindent
+    let &showbreak = '└ '
+    " Better indention/ hierarchy
+    set formatlistpat=^\\s*                    " Optional leading whitespace
+    set formatlistpat+=[                       " Start class
+    set formatlistpat+=\\[({]\\?               " |  Optionally match opening punctuation
+    set formatlistpat+=\\(                     " |  Start group
+    set formatlistpat+=[0-9]\\+                " |  |  A number
+    set formatlistpat+=\\\|[iIvVxXlLcCdDmM]\\+ " |  |  Roman numerals
+    set formatlistpat+=\\\|[a-zA-Z]            " |  |  A single letter
+    set formatlistpat+=\\)                     " |  End group
+    set formatlistpat+=[\\]:.)}                " |  Closing punctuation
+    set formatlistpat+=]                       " End class
+    set formatlistpat+=\\s\\+                  " One or more spaces
+    set formatlistpat+=\\\|^\\s*[-–+o*]\\s\\+  " Or ASCII style bullet points
+    " replace common punctuation
+    set iskeyword+=-
+    inoreabbrev <buffer> -- –
+    inoreabbrev <buffer> --- —
+    inoreabbrev <buffer> << «
+    inoreabbrev <buffer> >> »
+    " init advanced text objects
+    call textobj#quote#init()
+    call textobj#sentence#init()
+endfunction
+" }}}
+" {{{ No plain text
+" Prevent various Vim features from keeping the contents of pass(1) password
+" files (or any other purely temporary files) in plaintext on the system.
+"
+" Either append this to the end of your .vimrc, or install it as a plugin with
+" a plugin manager like Tim Pope's Pathogen.
+"
+" Author: Tom Ryder <tom@sanctum.geek.nz>
+" See: https://git.zx2c4.com/password-store/tree/contrib/vim/noplaintext.vim
+
+" Don't backup files in temp directories or shm
+if exists('&backupskip')
+    set backupskip+=/tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*,*/shm/*
+endif
+
+" Don't keep swap files in temp directories or shm
+if has('autocmd')
+    augroup swapskip
+        autocmd!
+        silent! autocmd BufNewFile,BufReadPre
+            \ /tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*,*/shm/*
+            \ setlocal noswapfile
+    augroup END
+endif
+
+" Don't keep undo files in temp directories or shm
+if has('persistent_undo') && has('autocmd')
+    augroup undoskip
+        autocmd!
+        silent! autocmd BufWritePre
+            \ /tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*,*/shm/*
+            \ setlocal noundofile
+    augroup END
+endif
+
+" Don't keep viminfo for files in temp directories or shm
+if has('viminfo')
+    if has('autocmd')
+        augroup viminfoskip
+            autocmd!
+            silent! autocmd BufNewFile,BufReadPre
+                \ /tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*,*/shm/*
+                \ setlocal viminfo=
+        augroup END
+    endif
+endif
+" }}}
+" {{{ Proselint
+function! g:Proselint()
+    let oldmakeprg = &l:makeprg
+    let olderrorformat = &l:errorformat
+    let &l:makeprg = 'proselint %'
+    let &l:errorformat = '%f:%l:%c: %m'
+    make
+    let &l:makeprg = oldmakeprg
+    let &l:errorformat = olderrorformat
+endfunction
+command! -nargs=? ProofReadProselint call g:Proselint()
+" }}}
+" Task spooler {{{
+let task_spooler_jobs = '.git/jobs'
+function! MesonTargetsComplete(ArgLead, CmdLine, CursorPos)
+    let result = []
+    let targets = MesonIntrospect('--targets')
+    let builddir = MesonBuildDir(MesonProjectDir())
+    for t in targets
+        let field = t.filename
+        if t.type ==# 'run'
+            let field = t.name
+        else
+            " handle filename arrays introduced in 0.50.0
+            if type(field) == v:t_list
+                let field = field[0]
+            endif
+            " strip build directory prefix
+            if field =~# '^'.builddir
+                let field = field[len(builddir):]
+            endif
+        endif
+        if field =~# a:ArgLead
+            call add(result, field)
+        endif
+    endfor
+    return result
+endfunction
+function! Make(target)
+    execute 'make! ' . a:target
+endfunction
+command! -nargs=1 -complete=customlist,MesonTargetsComplete Make call Make('<args>')
+" }}}
+" Fugitive {{{
+nnoremap <leader>gs :Gstatus<cr>
+" }}}
+" Doxygen {{{
+let g:load_doxygen_syntax = 1
+function! g:MakeDoxygen()
+    let olderrorformat = &l:errorformat
+    let &l:errorformat = '%f:%l: warning: %m'
+    silent make doc | redraw!
+    let &l:errorformat = olderrorformat
+endfunction
+" }}}
+" Git {{{
+function! g:InsertIssue()
+    let issue_no = matchstr(system('git rev-parse --abbrev-ref HEAD'), '[0-9]\+')
+    if issue_no
+        call setline(1, '#' . issue_no . ' ')
+        normal $
+    endif
+endfunction
+" }}}
+" red button {{{
+function! RedButtonScript()
+    let root = systemlist('git rev-parse --show-toplevel')[0]
+    return root . '/.git/redbutton'
+endfunction
+function! RedButtonEdit()
+    let makeprg = &l:makeprg
+    if len(makeprg) == 0 | let makeprg = &g:makeprg | endif
+    if len(makeprg) == 0 | let makeprg = 'make' | endif
+    let script = RedButtonScript()
+    execute 'edit ' . script
+    if line('$') == 1
+        setlocal filetype=sh
+        call append(0, ['#!/bin/sh', '', makeprg])
+        write
+        call system('chmod +x ' . script)
+        edit
+    endif
+endfunction
+function! RedButton()
+    let script = RedButtonScript()
+    if filereadable(script)
+        let oldmakeprg = &l:makeprg
+        let args = script . '_args'
+        call writefile([expand('%:p')], args)
+        call mkdir(g:task_spooler_jobs, 'p')
+        let &l:makeprg = 'env REDBUTTON_ARGS=' . args .
+                    \ ' TS_SOCKET=/tmp/make.socket' .
+                    \ ' TS_SAVELIST=' . g:task_spooler_jobs . '/state' .
+                    \ ' TMPDIR=' . g:task_spooler_jobs .
+                    \ ' tsp -f -n ' . script
+        try | make | finally | let &l:makeprg = oldmakeprg | endtry
+    else
+        call RedButtonEdit()
+    endif
+endfunction
+nnoremap <silent> <f9> :call RedButton()<cr>
+nnoremap <silent> <leader><f9> :call RedButtonEdit()<cr>
+nnoremap <silent> <f6> :call RedButton()<cr>
+nnoremap <silent> <leader><f6> :call RedButtonEdit()<cr>
+" }}}
+let g:languagetool_jar = '$HOME/.local/share/LanguageTool-4.7/languagetool-commandline.jar'
+function! g:LanguageTool(filename)
+    let cmd = 'java -jar ' . g:languagetool_jar . ' -c utf-8 -l en-GB --json ' . a:filename . ' 2>/dev/null'
+    silent let json = json_decode(system(cmd))
+    let content = []
+    for i in json.matches
+        if i.sentence =~# '^\\' | continue | endif
+        let line = byte2line(i.offset)
+        let col = i.offset - line2byte(line) + 1
+        call add(content, {
+                    \ 'filename': a:filename,
+                    \ 'lnum': line,
+                    \ 'col': col,
+                    \ 'vcol': 0,
+                    \ 'text': i.message})
+    endfor
+    call setloclist(0, content)
+endfunction
+command! ProofRead call g:LanguageTool(expand('%'))
+" conceal mathics symbols
+let g:mma_candy = 1
+
+function! g:MesonTag()
+    " update project version if needed
+    silent call system(MesonCommand() . ' --reconfigure ' . ' ' . MesonBuildDir(MesonProjectDir()))
+    let project = MesonIntrospect('--projectinfo')
+    silent call system('git tag ' . shellescape(project.version))
+    echo 'Current tag is ' . systemlist('git describe --tags')[0]
+endfunction
+command! MesonTag call g:MesonTag()
+
+function! g:SynStack()
+    if exists("*synstack")
+        echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+    endif
+endfunc
+nnoremap <silent> <f2> :call g:SynStack()<cr>
+
+function! g:InsertTab()
+    execute 'normal a' . repeat(' ', &shiftwidth) . ''
+endfunction
+function! s:PlumbNames(filetype)
+    try
+        return plumb#{a:filetype}#names()
+    catch
+        return {}
+    endtry
+endfunction
+function! s:PlumbParents(filetype)
+    try
+        return plumb#{a:filetype}#parents()
+    catch
+        return []
+    endtry
+endfunction
+let g:plumb_start_col = 0
+let g:plumb_end_col = 0
+function! g:Plumb(mode)
+    let line = getline('.')
+    let pos = getcurpos()[2]-1
+    if line[pos] == ')'
+        let pos = pos - 1
+    elseif line[pos] == '('
+        let pos = pos + 1
+    endif
+    let col = pos
+    let ncol = strlen(line)
+    let sum = 0
+    while col != 0
+        if line[col] == ')'
+            let sum = sum + 1
+        endif
+        if line[col] == '('
+            if sum == 0
+                break
+            endif
+            let sum = sum - 1
+        endif
+        let col = col - 1
+    endwhile
+    let g:plumb_start_col = col
+    let col0 = line[col] == '(' ? col + 1 : col
+    let sum = 0
+    let col = pos
+    while col != ncol
+        if line[col] == '('
+            let sum = sum + 1
+        endif
+        if line[col] == ')'
+            if sum == 0
+                break
+            endif
+            let sum = sum - 1
+        endif
+        let col = col + 1
+    endwhile
+    let g:plumb_end_col = col
+    let col1 = line[col] == ')' ? col - 1 : col
+    let args = split(trim(line[col0:col1]))
+    echo args
+    "let args = split(trim(getline('.')))
+    if empty(args)
+        if a:mode ==# 'i'
+            call InsertTab()
+        endif
+        return
+    endif
+    let possible_names = []
+    for ft in extend([&filetype], s:PlumbParents(&filetype))
+        let names = s:PlumbNames(ft)
+        if has_key(names, args[0])
+            call add(possible_names, printf('plumb#%s#%s', ft, names[args[0]]))
+        endif
+        call add(possible_names, printf('plumb#%s#%s', ft, args[0]))
+    endfor
+    let success = 0
+    let errors = []
+    for name in possible_names
+        try
+            call call(function(name), args[1:])
+            let success = 1
+            break
+        catch
+            call add(errors, v:exception)
+        endtry
+    endfor
+    if success == 0
+        if a:mode ==# 'i'
+            call InsertTab()
+        else
+            for err in errors
+                echo err
+            endfor
+        endif
+    else
+        if a:mode ==# 'i'
+            let col = getcurpos()[2]
+            let ncol = strlen(getline(line('.')))
+            if col == ncol
+                startinsert!
+            else
+                startinsert
+            endif
+        endif
+    endif
+endfunction
+nnoremap <silent> <f1> :call g:Plumb('n')<cr>
+inoremap <silent> <tab> <C-G>u<esc>:call g:Plumb('i')<cr>
+
+" track files being edited
+let g:changelog = []
+function! TrackFile()
+    let new_record = join([strftime('%s'),expand('%:t'),&filetype],'|')
+    if (len(g:changelog) > 0 && g:changelog[-1] !=# new_record) || len(g:changelog) == 0
+        call add(g:changelog, new_record)
+    endif
+    if len(g:changelog) > 1000
+        call TrackWrite()
+    endif
+endfunction
+function! TrackWrite()
+    if len(g:changelog) > 0
+        try
+            let dir = fnamemodify('~/.local/share', ':p')
+            call mkdir(dir, 'p')
+            call writefile(g:changelog, dir . 'vim-track.log', 'a')
+        catch
+            echo v:exception
+        endtry
+        let g:changelog = []
+    endif
+endfunction
+"augroup track
+"    autocmd!
+"    autocmd TextChanged,TextChangedI,TextChangedP * call TrackFile()
+"    autocmd VimLeavePre * call TrackWrite()
+"augroup END
+
+" netrw
+nnoremap - :edit %:h<cr>
+"let g:netrw_banner = 0 " hide top panel
+let g:netrw_list_hide= '\(^\|\s\s\)\zs\.\S\+' " hide hidden files
+
+function! SchemeText()
+    " nbsp
+    setlocal list
+    "let &listchars="eol:¶,trail:~,extends:⫸,precedes:⫷,tab:▸,nbsp:␣"
+    let &listchars="nbsp:␣"
+    execute "inoreabbrev <buffer> --- \u00A0—"
+    execute "nnoremap <buffer> <f3> r\u00A0"
+endfunction
+command! SchemeText call SchemeText()
+digraphs -- 8212 ++ 160
+let @b = 'di(v%p'
