@@ -192,9 +192,21 @@ if has("autocmd")
         autocmd BufRead,BufNewFile *.mathics setlocal filetype=mma makeprg=mathics\ %
         autocmd BufRead,BufNewFile *.gnuplot set filetype=gnuplot
         autocmd FileType meson,markdown syntax sync fromstart
+        autocmd VimLeavePre * call SaveSession()
+        autocmd VimEnter * call RestoreSession()
     augroup END
 endif
 " }}}
+function! SaveSession()
+    if isdirectory('.git')
+        mksession! .git/Session.vim
+    endif
+endfunction
+function! RestoreSession()
+    if filereadable('.git/Session.vim')
+        source .git/Session.vim
+    endif
+endfunction
 function! RemoveTrailingWhitespace()
     let old = winsaveview()
     silent! %s/\s\+$//e
