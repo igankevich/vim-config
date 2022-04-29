@@ -160,7 +160,7 @@ if has("autocmd")
         autocmd BufRead /tmp/mutt-* call PlainText()
         autocmd BufRead */include/c++/* set filetype=cpp
         " stdin handling
-        autocmd StdinReadPost * setlocal hidden buftype=nofile
+        autocmd StdinReadPost * setlocal hidden buftype=nofile | let g:no_session = 1
         " simple file chooser
         autocmd StdinReadPost * nnoremap <enter> :silent !open <cfile><cr>
         " better sentence text objects
@@ -197,13 +197,14 @@ if has("autocmd")
     augroup END
 endif
 " }}}
+let g:no_session = 0
 function! SaveSession()
     if !argc() && isdirectory('.git')
         mksession! .git/Session.vim
     endif
 endfunction
 function! RestoreSession()
-    if !argc() && filereadable('.git/Session.vim')
+    if !g:no_session && !argc() && filereadable('.git/Session.vim')
         source .git/Session.vim
     endif
 endfunction
@@ -405,7 +406,6 @@ nnoremap <leader>w :w<cr>
 " fast find and replace
 function! g:FindAndReplace()
     let key = expand('<cword>')
-    echom key
     execute ":silent lgrep '\\b" . key . "\\b' | redraw!"
     let @p = '\<' . key . '\>'
 endfunction
