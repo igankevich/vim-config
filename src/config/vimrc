@@ -365,6 +365,8 @@ function! SortLines(type) abort
 endfunction
 map K <nop>
 nnoremap <space> <nop>
+nnoremap H <nop>
+nnoremap L <nop>
 " https://www.reddit.com/r/vim/comments/o2drnw/serious_problem_text_deletes_accidentally_and_no/
 inoremap <c-u> <nop>
 
