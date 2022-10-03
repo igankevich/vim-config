@@ -466,6 +466,7 @@ inoreabbrev :copy: ©
 cnoreabbrev lgrpe lgrep
 cnoreabbrev lkgrpe lgrep
 cnoreabbrev lkgrep lgrep
+cnoreabbrev maek make
 
 let g:quickfix_is_open = 0
 let g:quickfix_bufnr = -1
