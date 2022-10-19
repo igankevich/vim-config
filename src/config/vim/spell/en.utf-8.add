@@ -7,3 +7,6 @@ plugin
 oversubscription
 homoiconicity
 LLVM
+YAML
+InfluxDB
+Quickwit

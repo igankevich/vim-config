@@ -192,6 +192,7 @@ if has("autocmd")
         autocmd BufRead,BufNewFile *.mathics setlocal filetype=mma makeprg=mathics\ %
         autocmd BufRead,BufNewFile *.gnuplot set filetype=gnuplot
         autocmd FileType meson,markdown syntax sync fromstart
+        autocmd BufRead,BufNewFile Dockerfile* set filetype=dockerfile
         autocmd VimLeavePre * call SaveSession()
         autocmd VimEnter * call RestoreSession()
     augroup END
