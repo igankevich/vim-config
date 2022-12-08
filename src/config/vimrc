@@ -40,6 +40,7 @@ Plug 'igankevich/openscad.vim'
 Plug 'igankevich/siren.vim'
 "Plug '~/repos/dev/siren.vim'
 Plug 'rust-lang/rust.vim'
+Plug '~/repos/dev/lcov.vim'
 call plug#end()
 runtime ftplugin/man.vim
 " }}}
@@ -162,7 +163,7 @@ if has("autocmd")
         " stdin handling
         autocmd StdinReadPost * setlocal hidden buftype=nofile | let g:no_session = 1
         " simple file chooser
-        autocmd StdinReadPost * nnoremap <enter> :silent !open <cfile><cr>
+        autocmd StdinReadPost * nnoremap <buffer> <enter> :silent !open <cfile><cr>
         " better sentence text objects
         autocmd FileType tex,markdown,text,org call textobj#sentence#init()
         autocmd Filetype gitcommit setlocal spell textwidth=72 colorcolumn=73 | call InsertIssue()
@@ -184,7 +185,7 @@ if has("autocmd")
         autocmd FileType meson setlocal shiftwidth=4 tabstop=4
         autocmd FileType go setlocal formatprg=gofmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr>
-        autocmd FileType rust setlocal formatprg=rustfmt\ --edition\ 2021 wildignore=*.swp,*~,*.o,*/target/*
+        autocmd FileType rust setlocal formatprg=rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
         autocmd BufRead,BufNewFile *.vsl set nowrap
         autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") && bufname('%') !~# '^fugitive:'
                     \| exe "normal! g'\"" | endif
@@ -717,10 +718,16 @@ endfunction
 " }}}
 " Git {{{
 function! g:InsertIssue()
-    let issue_no = matchstr(system('git rev-parse --abbrev-ref HEAD'), '[0-9]\+')
+    let branch = trim(system('git rev-parse --abbrev-ref HEAD'))
+    let issue_no = matchlist(branch, '\_^\(.\+[0-9]\+\)')
+    if len(issue_no) >= 2
+        call setline(1, toupper(issue_no[1]) . ' ')
+        return
+    endif
+    let issue_no = matchstr(branch, '[0-9]\+')
     if issue_no
         call setline(1, '#' . issue_no . ' ')
-        normal $
+        return
     endif
 endfunction
 " }}}
@@ -959,3 +966,5 @@ endfunction
 command! SchemeText call SchemeText()
 digraphs -- 8212 ++ 160
 let @b = 'di(v%p'
+let g:lcov_vim_file = 'target/staexd.lcov'
+let g:lcov_vim_enable = 0
