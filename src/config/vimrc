@@ -183,9 +183,10 @@ if has("autocmd")
         autocmd Filetype c,cpp,objc call SetupPath()
         autocmd FileType make setlocal noexpandtab
         autocmd FileType meson setlocal shiftwidth=4 tabstop=4
-        autocmd FileType go setlocal formatprg=gofmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
+        autocmd FileType go setlocal formatprg=go\ fmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType rust setlocal formatprg=rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
+        autocmd FileType sh setlocal formatprg=shfmt\ --indent\ 4
         autocmd BufRead,BufNewFile *.vsl set nowrap
         autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") && bufname('%') !~# '^fugitive:'
                     \| exe "normal! g'\"" | endif
@@ -968,3 +969,5 @@ digraphs -- 8212 ++ 160
 let @b = 'di(v%p'
 let g:lcov_vim_file = 'target/staexd.lcov'
 let g:lcov_vim_enable = 0
+
+nnoremap <silent> <f7> :!g++ -std=c++23 -x c++ % && ./a.out; echo<cr>
