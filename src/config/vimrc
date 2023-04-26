@@ -183,7 +183,7 @@ if has("autocmd")
         autocmd Filetype c,cpp,objc call SetupPath()
         autocmd FileType make setlocal noexpandtab
         autocmd FileType meson setlocal shiftwidth=4 tabstop=4
-        autocmd FileType go setlocal formatprg=go\ fmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
+        autocmd FileType go setlocal formatprg=gofmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType rust setlocal formatprg=rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
         autocmd FileType sh setlocal formatprg=shfmt\ --indent\ 4
@@ -195,6 +195,7 @@ if has("autocmd")
         autocmd BufRead,BufNewFile *.gnuplot set filetype=gnuplot
         autocmd FileType meson,markdown syntax sync fromstart
         autocmd BufRead,BufNewFile Dockerfile* set filetype=dockerfile
+        autocmd BufRead,BufNewFile *.plist set filetype=xml
         autocmd VimLeavePre * call SaveSession()
         autocmd VimEnter * call RestoreSession()
     augroup END
