@@ -16,3 +16,7 @@ function! JavaFormatParagraph()
     normal 'z
     call winrestview(old)
 endfunction
+
+function! JavaDownloadGoogleJavaFormat()
+    !curl -fL -o ~/.local/share/google-java-format-1.4-all-deps.jar https://github.com/google/google-java-format/releases/download/google-java-format-1.4/google-java-format-1.4-all-deps.jar
+endfunction

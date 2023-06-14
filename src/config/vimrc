@@ -29,7 +29,7 @@ Plug '~/repos/dev/vim-vcard'
 Plug 'rsmenon/vim-mathematica'
 Plug 'petRUShka/vim-opencl'
 Plug 'wilriker/gcode.vim'
-Plug 'tikhomirov/vim-glsl'
+"Plug 'tikhomirov/vim-glsl' interferes with html highlighting (?)
 Plug 'fcpg/vim-altscreen'
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'igankevich/arabica.vim'
@@ -41,6 +41,7 @@ Plug 'igankevich/siren.vim'
 "Plug '~/repos/dev/siren.vim'
 Plug 'rust-lang/rust.vim'
 Plug '~/repos/dev/lcov.vim'
+"Plug 'posva/vim-vue'
 call plug#end()
 runtime ftplugin/man.vim
 " }}}
