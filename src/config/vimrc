@@ -188,6 +188,11 @@ if has("autocmd")
         autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType rust setlocal formatprg=rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
         autocmd FileType sh setlocal formatprg=shfmt\ --indent\ 4
+        autocmd FileType javascript setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ typescript shiftwidth=4 tabstop=4 indentexpr=-1
+        autocmd FileType vue setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ vue shiftwidth=4 tabstop=4
+        autocmd FileType json setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ json shiftwidth=4 tabstop=4
+        autocmd FileType css setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ css shiftwidth=4 tabstop=4
+        autocmd FileType html setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ html shiftwidth=4 tabstop=4
         autocmd BufRead,BufNewFile *.vsl set nowrap
         autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") && bufname('%') !~# '^fugitive:'
                     \| exe "normal! g'\"" | endif

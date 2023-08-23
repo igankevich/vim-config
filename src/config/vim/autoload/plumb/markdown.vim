@@ -26,3 +26,9 @@ function! plumb#markdown#href(url)
     normal ^f[l
 endfunction
 
+function! plumb#markdown#date(...)
+    let indent = s:Indent(indent('.'))
+    call s:ReplaceLine(line('.'), [
+                \ printf('%s%s', indent, strftime('%Y-%m-%d'))], 0)
+    normal ^f[l
+endfunction

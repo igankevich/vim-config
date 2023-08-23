@@ -11,10 +11,12 @@ function! JavaFormatParagraph()
     let old = winsaveview()
     normal mzvip
     let lines = line("'<") . ':' . line("'>")
+    let oldformatprg = &l:formatprg
     let &l:formatprg = "java -jar ~/.local/share/google-java-format-1.4-all-deps.jar -a --lines " . lines . " -"
     normal gggqG
     normal 'z
     call winrestview(old)
+    let &l:formatprg = oldformatprg
 endfunction
 
 function! JavaDownloadGoogleJavaFormat()
