@@ -37,8 +37,8 @@ Plug 'igankevich/arabica.vim'
 Plug 'igankevich/mesonic'
 "Plug '~/repos/dev/mesonic'
 Plug 'igankevich/openscad.vim'
-Plug 'igankevich/siren.vim'
-"Plug '~/repos/dev/siren.vim'
+"Plug 'igankevich/siren.vim'
+Plug '~/repos/dev/siren.vim'
 Plug 'rust-lang/rust.vim'
 Plug '~/repos/dev/lcov.vim'
 "Plug 'posva/vim-vue'
@@ -186,10 +186,10 @@ if has("autocmd")
         autocmd FileType meson setlocal shiftwidth=4 tabstop=4
         autocmd FileType go setlocal formatprg=gofmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr>
-        autocmd FileType rust setlocal formatprg=rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
+        autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
         autocmd FileType sh setlocal formatprg=shfmt\ --indent\ 4
-        autocmd FileType javascript setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ typescript shiftwidth=4 tabstop=4 indentexpr=-1
-        autocmd FileType vue setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ vue shiftwidth=4 tabstop=4
+        autocmd FileType javascript setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ typescript shiftwidth=4 tabstop=4
+        autocmd FileType vue setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ vue shiftwidth=4 tabstop=4 | syntax sync fromStart
         autocmd FileType json setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ json shiftwidth=4 tabstop=4
         autocmd FileType css setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ css shiftwidth=4 tabstop=4
         autocmd FileType html setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ html shiftwidth=4 tabstop=4
@@ -423,7 +423,8 @@ function! g:FindAndReplace()
     let @p = '\<' . key . '\>'
 endfunction
 nnoremap <silent> <leader>u :call FindAndReplace()<cr>
-set grepprg=ag\ --vimgrep\ --case-sensitive\ --silent\ $* grepformat=%f:%l:%c:%m
+"set grepprg=ag\ --vimgrep\ --case-sensitive\ --silent\ $* grepformat=%f:%l:%c:%m
+set grepprg=rg\ --vimgrep\ --case-sensitive\ $* grepformat=%f:%l:%c:%m
 
 " faster command input
 "nnoremap ; :
@@ -477,6 +478,7 @@ cnoreabbrev lgrpe lgrep
 cnoreabbrev lkgrpe lgrep
 cnoreabbrev lkgrep lgrep
 cnoreabbrev maek make
+cnoreabbrev chekc check
 
 let g:quickfix_is_open = 0
 let g:quickfix_bufnr = -1
@@ -929,35 +931,6 @@ endfunction
 nnoremap <silent> <f1> :call g:Plumb('n')<cr>
 inoremap <silent> <tab> <C-G>u<esc>:call g:Plumb('i')<cr>
 
-" track files being edited
-let g:changelog = []
-function! TrackFile()
-    let new_record = join([strftime('%s'),expand('%:t'),&filetype],'|')
-    if (len(g:changelog) > 0 && g:changelog[-1] !=# new_record) || len(g:changelog) == 0
-        call add(g:changelog, new_record)
-    endif
-    if len(g:changelog) > 1000
-        call TrackWrite()
-    endif
-endfunction
-function! TrackWrite()
-    if len(g:changelog) > 0
-        try
-            let dir = fnamemodify('~/.local/share', ':p')
-            call mkdir(dir, 'p')
-            call writefile(g:changelog, dir . 'vim-track.log', 'a')
-        catch
-            echo v:exception
-        endtry
-        let g:changelog = []
-    endif
-endfunction
-"augroup track
-"    autocmd!
-"    autocmd TextChanged,TextChangedI,TextChangedP * call TrackFile()
-"    autocmd VimLeavePre * call TrackWrite()
-"augroup END
-
 " netrw
 nnoremap - :edit %:h<cr>
 "let g:netrw_banner = 0 " hide top panel
@@ -976,5 +949,6 @@ digraphs -- 8212 ++ 160
 let @b = 'di(v%p'
 let g:lcov_vim_file = 'target/staexd.lcov'
 let g:lcov_vim_enable = 0
+let g:sql_type_default = 'mysql'
 
 nnoremap <silent> <f7> :!g++ -std=c++23 -x c++ % && ./a.out; echo<cr>
