@@ -37,8 +37,8 @@ Plug 'igankevich/arabica.vim'
 Plug 'igankevich/mesonic'
 "Plug '~/repos/dev/mesonic'
 Plug 'igankevich/openscad.vim'
-"Plug 'igankevich/siren.vim'
-Plug '~/repos/dev/siren.vim'
+Plug 'igankevich/siren.vim'
+"Plug '~/repos/dev/siren.vim'
 Plug 'rust-lang/rust.vim'
 Plug '~/repos/dev/lcov.vim'
 "Plug 'posva/vim-vue'
@@ -103,6 +103,7 @@ function! SchemeWords()
     set lispwords+=substitute-keyword-arguments,modify-phases,replace,add-before,add-after
     set lispwords+=substitute*,program-file,with-imported-modules,directory-union,file-union
     set lispwords+=plain-file,mixed-text-file,scheme-file,with-mutex,package/inherit
+    set lispwords+=service
 endfunction
 
 filetype off
@@ -188,7 +189,7 @@ if has("autocmd")
         autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
         autocmd FileType sh setlocal formatprg=shfmt\ --indent\ 4
-        autocmd FileType javascript setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ typescript shiftwidth=4 tabstop=4
+        autocmd FileType javascript,typescript setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ typescript shiftwidth=4 tabstop=4
         autocmd FileType vue setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ vue shiftwidth=4 tabstop=4 | syntax sync fromStart
         autocmd FileType json setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ json shiftwidth=4 tabstop=4
         autocmd FileType css setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ css shiftwidth=4 tabstop=4
@@ -202,6 +203,8 @@ if has("autocmd")
         autocmd FileType meson,markdown syntax sync fromstart
         autocmd BufRead,BufNewFile Dockerfile* set filetype=dockerfile
         autocmd BufRead,BufNewFile *.plist set filetype=xml
+        autocmd BufRead */group_vars/* set filetype=yaml
+        autocmd BufRead */host_vars/* set filetype=yaml
         autocmd VimLeavePre * call SaveSession()
         autocmd VimEnter * call RestoreSession()
     augroup END
