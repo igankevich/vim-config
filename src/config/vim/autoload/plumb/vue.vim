@@ -29,3 +29,16 @@ function! plumb#vue#define()
                 \ printf('})')
                 \ ], 0)
 endfunction
+
+function! plumb#vue#path()
+    let shift = repeat(' ', &shiftwidth)
+    let path = expand('%')
+    let path = substitute(path, '^pages/', '/', '')
+    let path = substitute(path, '/index\.vue$', '', '')
+    let path = substitute(path, '\.vue$', '.', '')
+    let filename = fnamemodify(path, ':t')
+    call s:ReplaceLine(line('.'),
+                \ [
+                \ printf('%spath: "%s",', shift, path),
+                \ ], 0)
+endfunction
