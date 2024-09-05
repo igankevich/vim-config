@@ -19,7 +19,7 @@ Plug 'FooSoft/vim-argwrap'
 Plug 'tpope/vim-unimpaired'
 Plug 'reedes/vim-textobj-sentence' | Plug 'kana/vim-textobj-user'
 Plug 'reedes/vim-textobj-quote' | Plug 'kana/vim-textobj-user'
-Plug 'lervag/vimtex', {'do': 'rm after/syntax/tex.vim'}
+"Plug 'lervag/vimtex', {'do': 'rm after/syntax/tex.vim'}
 Plug 'kana/vim-textobj-entire'
 Plug 'mikelue/vim-maven-plugin'
 Plug 'tpope/vim-abolish'
@@ -42,6 +42,7 @@ Plug 'igankevich/siren.vim'
 Plug 'rust-lang/rust.vim'
 Plug '~/repos/dev/lcov.vim'
 "Plug 'posva/vim-vue'
+"Plug 'vimwiki/vimwiki'
 call plug#end()
 runtime ftplugin/man.vim
 " }}}
@@ -207,6 +208,7 @@ if has("autocmd")
         autocmd BufRead */host_vars/* set filetype=yaml
         autocmd VimLeavePre * call SaveSession()
         autocmd VimEnter * call RestoreSession()
+        autocmd BufRead,BufNewFile *.rs nnoremap <buffer> <leader>m :make! build<cr>
     augroup END
 endif
 " }}}
@@ -354,7 +356,6 @@ endfunction
 function! g:MesonSetTarget(new_target)
     let g:meson_target = a:new_target
 endfunction
-"let meson_ninja_command = 'ninja -j4'
 " {{{ Key bindings and abbreviations
 let mapleader = "\<space>"
 nnoremap <leader>h :Headerguard<cr>
@@ -397,13 +398,18 @@ nnoremap <leader>F :edit **/*
 " prefix with src/ if such directory exists
 nnoremap <leader>e :edit =glob('src/')**/*
 "nnoremap <leader>e :edit **/*
-function! VimIndent()
+function! MyVimIndent()
     let old = winsaveview()
     normal gg=G
     call winrestview(old)
 endfunction
-nnoremap <f4> :call VimIndent()<cr>
-nnoremap <f5> gggg
+function! MyVimFormat()
+    let old = winsaveview()
+    normal gggqG
+    call winrestview(old)
+endfunction
+nnoremap <f4> :call MyVimIndent()<cr>
+nnoremap <f5> :call MyVimFormat()<cr>
 function! Todo()
     silent lgrep! '\bTODO\b'
     lopen
