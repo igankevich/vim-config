@@ -130,7 +130,8 @@ function! EpicInit()
             " replace cscope with GNU global
             let &l:cscopeprg = "gtags-cscope"
             cscope reset
-            cscope add GTAGS
+            let cwd = getcwd()
+            execute 'cscope add GTAGS ' . cwd
             setlocal cscopetag
             setlocal cscopequickfix=s-,c-,d-,i-,t-,e-
             setlocal csto=0
