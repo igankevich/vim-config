@@ -34,8 +34,8 @@ Plug 'fcpg/vim-altscreen'
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'igankevich/arabica.vim'
 "Plug '~/repos/dev/arabica.vim'
-Plug 'igankevich/mesonic'
-"Plug '~/repos/dev/mesonic'
+"Plug 'igankevich/mesonic'
+Plug '~/repos/dev/mesonic'
 Plug 'igankevich/openscad.vim'
 Plug 'igankevich/siren.vim'
 "Plug '~/repos/dev/siren.vim'
@@ -43,6 +43,7 @@ Plug 'rust-lang/rust.vim'
 Plug '~/repos/dev/lcov.vim'
 "Plug 'posva/vim-vue'
 "Plug 'vimwiki/vimwiki'
+Plug 'LnL7/vim-nix'
 call plug#end()
 runtime ftplugin/man.vim
 " }}}
@@ -107,6 +108,10 @@ function! SchemeWords()
     set lispwords+=service
 endfunction
 
+function! SqlKeywords()
+    syn keyword mysqlKeyword begin null autoincrement trigger virtual
+endfunction
+
 filetype off
 filetype plugin indent on
 syntax enable
@@ -155,6 +160,7 @@ endfunction
 if has("autocmd")
     augroup vimrcgroup
         autocmd!
+        autocmd BufRead,BufNewFile *.nix set formatprg=nixfmt
         autocmd BufRead,BufNewFile *.ins,*.dtx,*.cls,*.tex set filetype=tex
         autocmd BufRead,BufNewFile .Rprofile set filetype=r
         " graphviz integration
@@ -170,9 +176,7 @@ if has("autocmd")
         autocmd StdinReadPost * nnoremap <buffer> <enter> :silent !open <cfile><cr>
         " better sentence text objects
         autocmd FileType tex,markdown,text,org call textobj#sentence#init()
-        autocmd Filetype gitcommit setlocal spell textwidth=72 colorcolumn=73 | call InsertIssue()
-" fix git commit line for non-standard git prefix characters
-
+        autocmd Filetype gitcommit setlocal spell textwidth=72 colorcolumn=73
         autocmd Filetype org setlocal spell textwidth=80 nosmartindent nocindent | inoreabbrev <buffer> << « | inoreabbrev <buffer> >> » | inoreabbrev кфмн к.ф.-м.н.
         autocmd Filetype bib setlocal formatprg=bibtool iskeyword+=45 | nnoremap <buffer> <enter> :silent !setsid --fork plumb ~/org/bibliography/<cword>.pdf >/dev/null 2>&1<cr>
         autocmd FileType r setlocal tabstop=2 shiftwidth=2
@@ -188,8 +192,9 @@ if has("autocmd")
         autocmd FileType make setlocal noexpandtab
         autocmd FileType meson setlocal shiftwidth=4 tabstop=4
         autocmd FileType go setlocal formatprg=gofmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
-        autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr>
-        autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
+        autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr> | call SqlKeywords()
+        "autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
+        autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021 wildignore=*.swp,*~,*.o,*/target/*
         autocmd FileType sh setlocal formatprg=shfmt\ --indent\ 4
         autocmd FileType javascript,typescript setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ typescript shiftwidth=4 tabstop=4
         autocmd FileType vue setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ vue shiftwidth=4 tabstop=4 | syntax sync fromStart
@@ -734,21 +739,6 @@ function! g:MakeDoxygen()
     let &l:errorformat = '%f:%l: warning: %m'
     silent make doc | redraw!
     let &l:errorformat = olderrorformat
-endfunction
-" }}}
-" Git {{{
-function! g:InsertIssue()
-    let branch = trim(system('git rev-parse --abbrev-ref HEAD'))
-    let issue_no = matchlist(branch, '\_^\(.\+[0-9]\+\)')
-    if len(issue_no) >= 2
-        call setline(1, toupper(issue_no[1]) . ' ')
-        return
-    endif
-    let issue_no = matchstr(branch, '[0-9]\+')
-    if issue_no
-        call setline(1, '#' . issue_no . ' ')
-        return
-    endif
 endfunction
 " }}}
 " red button {{{
