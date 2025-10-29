@@ -124,10 +124,10 @@ set diffopt=filler,internal,algorithm:patience,indent-heuristic,vertical
 
 " }}}
 " Epic {{{
-augroup epicgroup
-    autocmd!
-    autocmd BufReadPost,BufNewFile * call EpicInit()
-augroup END
+"augroup epicgroup
+"    autocmd!
+"    autocmd BufReadPost,BufNewFile * call EpicInit()
+"augroup END
 
 function! EpicInit()
     try
@@ -154,6 +154,10 @@ function! EpicUpdate()
         call system("global -u")
     endif
     echo "Updated GTAGS"
+endfunction
+
+function! Ctags()
+    !rusty-tags vi -O ctags -o
 endfunction
 " }}}
 " {{{ Misc. file type integrations
@@ -194,12 +198,13 @@ if has("autocmd")
         autocmd FileType go setlocal formatprg=gofmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr> | call SqlKeywords()
         "autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
-        autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021 wildignore=*.swp,*~,*.o,*/target/*
+        autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021 wildignore=*.swp,*~,*.o,*/target/* tags=./ctags;/
         autocmd FileType sh setlocal formatprg=shfmt\ --indent\ 4
-        autocmd FileType javascript,typescript setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ typescript shiftwidth=4 tabstop=4
+        autocmd FileType javascript,typescript setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ typescript formatexpr= shiftwidth=4 tabstop=4
         autocmd FileType vue setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ vue shiftwidth=4 tabstop=4 | syntax sync fromStart
         autocmd FileType json setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ json shiftwidth=4 tabstop=4
         autocmd FileType css setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ css shiftwidth=4 tabstop=4
+        autocmd FileType scss setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ scss shiftwidth=4 tabstop=4
         autocmd FileType html setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ html shiftwidth=4 tabstop=4
         autocmd BufRead,BufNewFile *.vsl set nowrap
         autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") && bufname('%') !~# '^fugitive:'
@@ -245,6 +250,16 @@ function! FormatParagraph()
     call winrestview(old)
 endfunction
 nnoremap <silent> + :call IndentParagraph()<cr>
+function! GermanAbbr()
+    inoremap :a ä
+    inoremap :A Ä
+    inoremap :o ö
+    inoremap :O Ö
+    inoremap :u ü
+    inoremap :U Ü
+    inoremap :s ß
+    inoremap :S ẞ
+endfunction
 " {{{ C++ related
 function! g:AddToPath(paths)
     if empty(a:paths) | return | endif
@@ -365,8 +380,8 @@ endfunction
 " {{{ Key bindings and abbreviations
 let mapleader = "\<space>"
 nnoremap <leader>h :Headerguard<cr>
-" generate GNU global tags
-nnoremap <silent> <leader>T :call EpicUpdate()<cr>
+" generate ctags
+nnoremap <silent> <leader>T :call Ctags()<cr>
 " wrap arguments
 nnoremap <silent> <leader>a :ArgWrap<cr>
 " query GNU global
@@ -581,7 +596,7 @@ endif
 "highlight SpellLocal ctermbg=NONE guibg=NONE cterm=underline gui=underline
 "highlight SpellRare ctermbg=NONE guibg=NONE cterm=underline gui=underline
 "highlight SpellCap ctermbg=NONE guibg=NONE cterm=underline gui=underline
-"highlight CursorLine cterm=NONE ctermbg=235 guibg=#404040
+"highlight CursorLine cterm=NONE ctermbg=60
 
 " }}}
 " {{{ XDG config dirs (continued
