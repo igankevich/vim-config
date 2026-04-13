@@ -87,6 +87,7 @@ set path=.,**
 set dictionary=/usr/share/dict/words spelllang=en_gb,ru_ru
 set shell=/bin/sh
 set tabpagemax=999
+set modeline=off modelines=0
 
 let g:tex_flavor='latex'
 
@@ -109,7 +110,12 @@ function! SchemeWords()
 endfunction
 
 function! SqlKeywords()
-    syn keyword mysqlKeyword begin null autoincrement trigger virtual
+    syn keyword mysqlKeyword begin null autoincrement trigger virtual strict
+endfunction
+
+function! JsKeywords()
+    syn clear javaScriptMember
+    syn keyword javaScriptMember document location
 endfunction
 
 filetype off
@@ -197,15 +203,11 @@ if has("autocmd")
         autocmd FileType meson setlocal shiftwidth=4 tabstop=4
         autocmd FileType go setlocal formatprg=gofmt makeprg=go\ build | nnoremap <silent> + :call FormatParagraph()<cr>
         autocmd FileType sql setlocal formatprg=sqlformat\ --reindent\ --keywords\ upper\ --identifiers\ lower\ - | nnoremap <silent> + :call FormatParagraph()<cr> | call SqlKeywords()
-        "autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021\ --unstable-features\ --config\ group_imports=StdExternalCrate wildignore=*.swp,*~,*.o,*/target/*
-        autocmd FileType rust setlocal formatprg=~/.local/bin/rustfmt\ --edition\ 2021 wildignore=*.swp,*~,*.o,*/target/* tags=./ctags;/
+        autocmd FileType rust setlocal formatprg=rustfmt\ --edition\ 2024 wildignore=*.swp,*~,*.o,*/target/* tags=./ctags;/
         autocmd FileType sh setlocal formatprg=shfmt\ --indent\ 4
-        autocmd FileType javascript,typescript setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ typescript formatexpr= shiftwidth=4 tabstop=4
-        autocmd FileType vue setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ vue shiftwidth=4 tabstop=4 | syntax sync fromStart
-        autocmd FileType json setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ json shiftwidth=4 tabstop=4
-        autocmd FileType css setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ css shiftwidth=4 tabstop=4
-        autocmd FileType scss setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ scss shiftwidth=4 tabstop=4
-        autocmd FileType html setlocal formatprg=prettier\ --tab-width\ 4\ --parser\ html shiftwidth=4 tabstop=4
+        autocmd FileType javascript,typescript call JsKeywords()
+        autocmd FileType vue syntax sync fromStart | call JsKeywords()
+        autocmd FileType javascript,typescript,vue,json,css,scss,html setlocal formatprg=oxfmt\ --stdin-filepath=% shiftwidth=4 tabstop=4
         autocmd BufRead,BufNewFile *.vsl set nowrap
         autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") && bufname('%') !~# '^fugitive:'
                     \| exe "normal! g'\"" | endif
@@ -493,6 +495,8 @@ let @m = 'viwcstd::move(")'
 " conver google test to unistdx test
 let @t = '^cf(void test_f,xr_f)i('
 let @e = '^ct(expectlavalue(/, i)ls == xavalue($F)i)j^'
+" Convert EXIF table to Scheme.
+let @x = '^i("/[0-9]bbea"wwea)lDj0'
 
 
 inoreabbrev :smile: 🙂
