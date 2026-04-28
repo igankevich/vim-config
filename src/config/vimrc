@@ -34,8 +34,8 @@ Plug 'fcpg/vim-altscreen'
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'igankevich/arabica.vim'
 "Plug '~/repos/dev/arabica.vim'
-"Plug 'igankevich/mesonic'
-Plug '~/repos/dev/mesonic'
+Plug 'igankevich/mesonic'
+"Plug '~/repos/dev/mesonic'
 Plug 'igankevich/openscad.vim'
 Plug 'igankevich/siren.vim'
 "Plug '~/repos/dev/siren.vim'
@@ -87,7 +87,7 @@ set path=.,**
 set dictionary=/usr/share/dict/words spelllang=en_gb,ru_ru
 set shell=/bin/sh
 set tabpagemax=999
-set modeline=off modelines=0
+set nomodeline modelines=0
 
 let g:tex_flavor='latex'
 
@@ -208,6 +208,7 @@ if has("autocmd")
         autocmd FileType javascript,typescript call JsKeywords()
         autocmd FileType vue syntax sync fromStart | call JsKeywords()
         autocmd FileType javascript,typescript,vue,json,css,scss,html setlocal formatprg=oxfmt\ --stdin-filepath=% shiftwidth=4 tabstop=4
+        autocmd FileType python setlocal formatprg=black\ --stdin-filename=%\ -
         autocmd BufRead,BufNewFile *.vsl set nowrap
         autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") && bufname('%') !~# '^fugitive:'
                     \| exe "normal! g'\"" | endif
