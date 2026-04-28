@@ -208,7 +208,7 @@ if has("autocmd")
         autocmd FileType javascript,typescript call JsKeywords()
         autocmd FileType vue syntax sync fromStart | call JsKeywords()
         autocmd FileType javascript,typescript,vue,json,css,scss,html setlocal formatprg=oxfmt\ --stdin-filepath=% shiftwidth=4 tabstop=4
-        autocmd FileType python setlocal formatprg=black\ --stdin-filename=%\ -
+        autocmd FileType python setlocal formatprg=black\ --stdin-filename=%\ --quiet\ -
         autocmd BufRead,BufNewFile *.vsl set nowrap
         autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") && bufname('%') !~# '^fugitive:'
                     \| exe "normal! g'\"" | endif
