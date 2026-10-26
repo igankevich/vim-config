@@ -110,7 +110,7 @@ function! SchemeWords()
 endfunction
 
 function! SqlKeywords()
-    syn keyword mysqlKeyword begin null autoincrement trigger virtual strict
+    syn keyword mysqlKeyword begin null autoincrement trigger virtual strict commit transaction
 endfunction
 
 function! JsKeywords()
@@ -163,7 +163,7 @@ function! EpicUpdate()
 endfunction
 
 function! Ctags()
-    !rusty-tags vi -O ctags -o
+    !rusty-tags vi -O ctags -o --output-dir-std ~/.cache/rust-std
 endfunction
 " }}}
 " {{{ Misc. file type integrations
@@ -208,7 +208,7 @@ if has("autocmd")
         autocmd FileType javascript,typescript call JsKeywords()
         autocmd FileType vue syntax sync fromStart | call JsKeywords()
         autocmd FileType javascript,typescript,vue,json,css,scss,html setlocal formatprg=oxfmt\ --stdin-filepath=% shiftwidth=4 tabstop=4
-        autocmd FileType python setlocal formatprg=black\ --stdin-filename=%\ --quiet\ -
+        autocmd FileType python setlocal formatprg=ruff\ format\ -
         autocmd BufRead,BufNewFile *.vsl set nowrap
         autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") && bufname('%') !~# '^fugitive:'
                     \| exe "normal! g'\"" | endif
